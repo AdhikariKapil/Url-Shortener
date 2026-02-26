@@ -7,8 +7,9 @@ from .database import get_db
 # So we can ignore this error and assert db is not None.
 def init_db():
     db = get_db()
-    assert db is not None, "Database connection not initialized."
-    cursor = db.cursor()  # noqa
+    if db is None:
+        raise RuntimeError("Database connection not initialized.")
+    cursor = db.cursor()
 
     # URLs table
     cursor.execute("""
@@ -16,19 +17,22 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             original_url TEXT UNIQUE NOT NULL,
             alias TEXT UNIQUE NOT NULL,
-            created_at TIMESTAMP NOT NULL,
-            total_clicks INTEGER DEFAULT 0
+            created_at TIMESTAMP NOT NULL
         )
     """)
 
     # Clicks table
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS clicks(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            alias TEXT,
-            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        CREATE TABLE IF NOT EXISTS daily_clicks(
+            alias TEXT NOT NULL,
+            click_date DATE NOT NULL,
+            click_count INTEGER NOT NULL DEFAULT 0,
+            PRIMARY KEY(alias, click_date),
             FOREIGN KEY(alias) REFERENCES urls(alias) ON DELETE CASCADE
-        )
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_daily_clicks_alias_date
+        ON daily_clicks(alias, click_date);
     """)
 
     db.commit()

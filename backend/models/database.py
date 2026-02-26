@@ -14,6 +14,7 @@ def get_db():
         # default (1, "https://example.com")
         # row[0]
         g.db.row_factory = sqlite3.Row
+        g.db.execute("PRAGMA foreign_keys = ON")
 
         return g.db
 
