@@ -1,11 +1,13 @@
 from flask import Blueprint, jsonify, request, current_app, redirect, abort
 from models.database import get_db
 from services.url_service import shorten_url, handle_redirect
+from middleware.rate_limiter import rate_limit
 
 url_bp = Blueprint("url", __name__)
 
 
 @url_bp.route("/shorten", methods=["POST"])
+@rate_limit(limit=2, window=60)
 def shorten_url_route():
     try:
         data = request.get_json()

@@ -26,6 +26,6 @@ end
 
 --allow request
 redis.call("ZADD", key, now, now)
-redis.call("EXPIRES", key, window)
+redis.call("EXPIRE", key, window)
 
 return { 1, 0 }

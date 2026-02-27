@@ -1,4 +1,5 @@
 import time
+from redis.exceptions import NoScriptError
 from pathlib import Path
 from functools import wraps
 from flask import request, jsonify, current_app
@@ -18,7 +19,6 @@ def load_lua():
     with open(path) as f:
         script = f.read()
 
-    # calling script becomes async
     lua_script = redis.register_script(script)
     current_app.logger.info("RATE LIMIT LUA SCRIPT REGISTERED")
 
@@ -41,9 +41,18 @@ def rate_limit(limit=5, window=60):
             now = int(time.time())
 
             # "Awaitable[str] is not iterable" is a type-hint confusion caused by redis-py 5.x stubs + Lua Script typing.
-            allowed, retry_after = lua_script(  # pyright: ignore
-                keys=[key], args=[now, window, limit]
-            )
+            try:
+                allowed, retry_after = lua_script(  # pyright: ignore
+                    keys=[key],
+                    args=[now, window, limit],
+                )
+            except NoScriptError:
+                # Redis lost the script on restart or re-register_script
+                load_lua()
+                allowed, retry_after = lua_script(  # pyright: ignore
+                    keys=[key],
+                    args=[now, window, limit],
+                )
 
             if not allowed and not retry_after:
                 raise RuntimeError("Lua Script returned None")
