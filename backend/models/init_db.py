@@ -31,6 +31,8 @@ def init_db():
             FOREIGN KEY(alias) REFERENCES urls(alias) ON DELETE CASCADE
         );
 
+    """)
+    cursor.execute("""
         CREATE INDEX IF NOT EXISTS idx_daily_clicks_alias_date
         ON daily_clicks(alias, click_date);
     """)

@@ -1,6 +1,6 @@
-from flask import Blueprint, jsonify, request, current_app
+from flask import Blueprint, jsonify, request, current_app, redirect, abort
 from models.database import get_db
-from services.shorten_service import shorten_url
+from services.url_service import shorten_url, handle_redirect
 
 url_bp = Blueprint("url", __name__)
 
@@ -13,7 +13,7 @@ def shorten_url_route():
             current_app.logger.warning(
                 f"SHORTEN FAILED ip={request.remote_addr} reason ='No URL Provided.' "
             )
-            return jsonify({"error": "URL is required."}), 400
+            return jsonify({"error": "URL is required."}), 400  # syntatically wrong
 
         db = get_db()
         alias, status = shorten_url(db, data["url"])
@@ -22,13 +22,22 @@ def shorten_url_route():
             current_app.logger.warning(
                 f"SHORTEN FAILED ip={request.remote_addr} url='{data['url']}' reason = 'Invalid URL'"
             )
-            return jsonify({"error": "Invalid URL"})
+            return (
+                jsonify({"error": "Invalid URL"}),
+                422,
+            )  # syntatically correct but the data is invalid
 
         elif status == "EXISTING!":
             current_app.logger.info(
                 f"SHORTEN EXISTING ip={request.remote_addr} url='{data['url']} alias='{alias}'"
             )
             return jsonify({"alias": alias}), 200
+
+        elif status == "Unresolved":
+            current_app.logger.warning(
+                f"SHORTEN FAILED ip = {request.remote_addr} url = {data['url']} reason = 'No address associated with hostname'"
+            )
+            return jsonify({"error": "URL doesnot exists."}), 404
 
         else:
             current_app.logger.info(
@@ -40,4 +49,28 @@ def shorten_url_route():
         current_app.logger.error(
             f"SHORTEN FAILED ip={request.remote_addr} reason = {e}"
         )
-        return jsonify({"error": e})
+        return jsonify({"error": str(e)}), 500
+
+
+@url_bp.route("/<alias>", methods=["GET"])
+def redirect_url(alias: str):
+    try:
+        db = get_db()
+        original_url = handle_redirect(db, alias)
+
+        if not original_url:
+            current_app.logger.warning(
+                f"REDIRECT FAILED ip={request.remote_addr} alias={alias} reason = 'URL Not Found'"
+            )
+            abort(404, description="Alias not found.")
+
+        current_app.logger.info(
+            f"REDIRECT SUCCESS ip={request.remote_addr} alias={alias} url = {original_url}"
+        )
+        return redirect(original_url, code=302)  # found
+
+    except Exception as e:
+        current_app.logger.error(
+            f"REDIRECT FAILED ip = {request.remote_addr} alias = {alias} reason = {e}"
+        )
+        abort(500, description="Internal Server Error")

@@ -1,16 +1,8 @@
 from datetime import datetime, timezone, date
-from models.database import get_db
 
 
-def get_cursor():
-    db = get_db()
-    if db is None:
-        raise RuntimeError("Database connection not initialized.")
-    return db, db.cursor()
-
-
-def create_alias(original_url: str, alias: str):
-    db, cursor = get_cursor()
+def create_alias(db, original_url, alias):
+    cursor = db.cursor()
     cursor.execute(
         """
         INSERT INTO urls
@@ -23,8 +15,8 @@ def create_alias(original_url: str, alias: str):
     db.commit()
 
 
-def get_original_url(alias: str):
-    db, cursor = get_cursor()
+def get_original_url(db, alias):
+    cursor = db.cursor()
     cursor.execute(
         """
             SELECT original_url
@@ -38,8 +30,8 @@ def get_original_url(alias: str):
     return row["original_url"] if row else None
 
 
-def increment_clicks(alias: str):
-    db, cursor = get_cursor()
+def increment_clicks(db, alias):
+    cursor = db.cursor()
     today = date.today()
     cursor.execute(
         """
