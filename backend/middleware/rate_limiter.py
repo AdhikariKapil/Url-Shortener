@@ -59,7 +59,7 @@ def rate_limit(limit=5, window=60):
 
             if int(allowed) == 0:
                 current_app.logger.warning(
-                    f"RATE LIMIT BLOCKED ip={ip} retry_after={retry_after}"
+                    f"RATE LIMIT BLOCKED ip={ip} reason='Too many Request' retry_after={retry_after}"
                 )
                 return (
                     jsonify(

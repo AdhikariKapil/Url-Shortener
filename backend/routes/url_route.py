@@ -48,13 +48,13 @@ def shorten_url_route():
             return jsonify({"alias": alias}), 201
 
     except Exception as e:
-        current_app.logger.error(
+        current_app.logger.exception(
             f"SHORTEN FAILED ip={request.remote_addr} reason = {e}"
         )
         return jsonify({"error": str(e)}), 500
 
 
-@url_bp.route("/<alias>", methods=["GET"])
+@url_bp.route("/alias/<alias>", methods=["GET"])
 def redirect_url(alias: str):
     try:
         db = get_db()
@@ -78,7 +78,7 @@ def redirect_url(alias: str):
     except Exception as e:
         if alias == "favicon.ico":
             abort(400)
-        current_app.logger.error(
+        current_app.logger.exception(
             f"REDIRECT FAILED ip = {request.remote_addr} alias = {alias} reason = {e}"
         )
         abort(500, description="Internal Server Error")
