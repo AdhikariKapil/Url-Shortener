@@ -4,6 +4,7 @@ from extensions import cors
 from models.database import close_db
 from models.init_db import init_db
 from routes import register_routes
+from services.redis_service import init_redis
 
 
 def create_app():
@@ -26,6 +27,7 @@ def create_app():
     # initialize db inside app context for current_app.
     with app.app_context():
         init_db()
+        init_redis(app)
 
     return app
 

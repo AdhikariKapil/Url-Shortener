@@ -13,6 +13,9 @@ class Config:
         "fallback-dev-key",
     )
 
+    REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+    REDIS_PORT = os.getenv("REDIS_PORT", 6379)
+
     INSTANCES_FOLDER = os.path.join(BASE_DIR, "instances")
     os.makedirs(INSTANCES_FOLDER, exist_ok=True)
     DATABASE = os.path.join(BASE_DIR, "instances", "database.db")
