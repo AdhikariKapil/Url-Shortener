@@ -56,6 +56,10 @@ def shorten_url_route():
 def redirect_url(alias: str):
     try:
         db = get_db()
+
+        if alias == "favicon.ico":
+            abort(404)
+
         original_url = handle_redirect(db, alias)
 
         if not original_url:
@@ -70,6 +74,8 @@ def redirect_url(alias: str):
         return redirect(original_url, code=302)  # found
 
     except Exception as e:
+        if alias == "favicon.ico":
+            abort(400)
         current_app.logger.error(
             f"REDIRECT FAILED ip = {request.remote_addr} alias = {alias} reason = {e}"
         )

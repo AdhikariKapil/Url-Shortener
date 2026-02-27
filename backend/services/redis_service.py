@@ -1,7 +1,6 @@
 # This is the redis connection
 
 import redis
-from flask import current_app
 
 redis_client = None
 
@@ -13,11 +12,14 @@ def init_redis(app):
         host=app.config["REDIS_HOST"],
         port=app.config["REDIS_PORT"],
         decode_responses=True,
+        # If redis freezes server waits forever so to prevent it
+        socket_connect_timeout=2,
+        socket_timeout=2,
     )
 
     try:
         redis_client.ping()
-        app.logger.info("REDIS CONNECTED SUCCESSFULLY.")
+        app.logger.warning("REDIS CONNECTED SUCCESSFULLY.")
     except Exception as error:
         app.logger.error(f"REDIS CONNECTION FAILED, reason = '{str(error)}'")
         raise error

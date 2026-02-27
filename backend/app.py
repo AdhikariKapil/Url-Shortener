@@ -24,10 +24,11 @@ def create_app():
     # register blueprints
     register_routes(app)
 
+    init_redis(app)
+
     # initialize db inside app context for current_app.
     with app.app_context():
         init_db()
-        init_redis(app)
 
     return app
 
