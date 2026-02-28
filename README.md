@@ -11,8 +11,6 @@ This application allows users to shorten long URLs and track click analytics in 
 - **Custom Rate Limiter** preventing abuse (5 URLs per minute per IP)
 - **Time-Series Analytics** showing click patterns over 7 days
 
-Specifically, the rate limiter implementation avoids the overhead of asynchronous semaphore overhead by using Redis atomic operations instead of Python's native threading mechanisms. This ensures minimal latency and true distributed rate-limiting that works across multiple server instances.
-
 ## Tech Stack
 
 ### Backend
@@ -42,9 +40,13 @@ Specifically, the rate limiter implementation avoids the overhead of asynchronou
 - Docker Desktop (or Docker + Docker Compose)
 - Git
 
-### Running on Recruiter's PC
+### For Running the Project
 
 1. **Clone/Extract the project**
+
+   ```bash
+   git clone git@github.com:AdhikariKapil/Url-Shortener.git
+   ```
 
    ```bash
    cd url_shortener
