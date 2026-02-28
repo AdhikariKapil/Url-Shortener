@@ -55,7 +55,7 @@ This application allows users to shorten long URLs and track click analytics in 
 2. **Start the application**
 
    ```bash
-   docker-compose up --build
+   docker compose up --build
    ```
 
 3. **Access the app**
@@ -84,28 +84,29 @@ Stage 2: Build Backend & Final Image
 └── Runs Flask on port 5000 to serve both API and frontend
 ```
 
-**Why this approach?**
+<!-- **Why this approach?** -->
+<!---->
+<!-- - Single container is easier to deploy to recruiter's PC -->
+<!-- - Frontend and backend run together -->
+<!-- - Minimal complexity -->
+<!-- - Flask serves both the API and the built React app -->
 
-- Single container is easier to deploy to recruiter's PC
-- Frontend and backend run together
-- Minimal complexity
-- Flask serves both the API and the built React app
-
-### `docker-compose.yml` (Orchestration)
-
-Manages two services:
-
-1. **Redis Service**
-   - Stores rate-limit counters
-   - Stores click analytics
-   - Runs on port 6379 internally
-   - Has a health check (ping) to ensure it's ready
-
-2. **App Service** (contains both frontend + backend)
-   - Depends on Redis being healthy before starting
-   - Exposes port 5000 to the recruiter's browser
-   - Shares a Docker network for container communication
-   - Redis talks to backend via service name `redis:6379`
+<!-- ### `docker-compose.yml` (Orchestration) -->
+<!---->
+<!-- Manages two services: -->
+<!---->
+<!-- 1. **Redis Service** -->
+<!--    - Stores rate-limit counters -->
+<!--    - Stores click analytics -->
+<!--    - Runs on port 6379 internally -->
+<!--    - Has a health check (ping) to ensure it's ready -->
+<!---->
+<!-- 2. **App Service** (contains both frontend + backend) -->
+<!--    - Depends on Redis being healthy before starting -->
+<!--    - Exposes port 5000 to the recruiter's browser -->
+<!--    - Shares a Docker network for container communication -->
+<!--    - Redis talks to backend via service name `redis:6379` -->
+<!---->
 
 **Why Redis in Docker?**
 
@@ -113,15 +114,16 @@ Manages two services:
 - Everything is self-contained
 - Easy to reset (just `docker-compose down -v`)
 
-### `.dockerignore`
-
-Prevents Docker from copying unnecessary files (like node_modules, git, **pycache**) into the image, reducing image size.
+<!-- ### `.dockerignore` -->
+<!---->
+<!-- Prevents Docker from copying unnecessary files (like node_modules, git, **pycache**) into the image, reducing image size. -->
 
 ## How the Rate Limiter Works
 
 ### Implementation Details
 
 The rate limiter uses a **Sliding Window Counter** algorithm:
+Used sliding window algorithm to avoid boundary burst problem.
 
 ```
 Request comes in → Check Redis key for IP address →
