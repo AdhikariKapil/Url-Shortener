@@ -2,7 +2,7 @@ from datetime import date, timedelta
 
 
 def get_clicks_last_7_days(db, alias):
-    # Returns clicks per day for last 7 day
+    # Returns clicks per day for last 7 days as daily_clicks dict
     cursor = db.cursor()
 
     today = date.today()
@@ -12,23 +12,35 @@ def get_clicks_last_7_days(db, alias):
         """
         SELECT click_date, click_count
         FROM daily_clicks
-        WHERE alias = ? AND click_date BETWEEN ? and ?
+        WHERE alias = ? AND click_date BETWEEN ? AND ?
         ORDER BY click_date ASC
         """,
-        (alias, start_date, today),
+        (alias, start_date.isoformat(), today.isoformat()),
     )
 
     rows = cursor.fetchall()
-    click_dict = {row["click_date"]: row["click_count"] for row in rows}
 
-    # Filling missing date with 0 count
-    return [
-        {
-            "date": (today - timedelta(days=i)).isoformat(),
-            "count": click_dict.get((today - timedelta(days=i)).isoformat(), 0),
-        }
-        for i in range(6, -1, -1)
-    ]
+    # Create a dictionary of clicks indexed by date string
+    daily_clicks = {}
+    for row in rows:
+        # Ensure date is stored as ISO string
+        date_str = (
+            row["click_date"]
+            if isinstance(row["click_date"], str)
+            else str(row["click_date"])
+        )
+        daily_clicks[date_str] = row["click_count"]
+
+    # Fill missing dates with 0 clicks
+    for i in range(7):
+        current_date = (today - timedelta(days=(6 - i))).isoformat()
+        if current_date not in daily_clicks:
+            daily_clicks[current_date] = 0
+
+    return {
+        "daily_clicks": daily_clicks,
+        "total_clicks": get_total_clicks(db, alias),
+    }
 
 
 def get_total_clicks(db, alias):
@@ -49,7 +61,7 @@ def get_total_clicks(db, alias):
 
 
 def get_all_urls_with_analytics(db):
-    # Return analytics for all URLs in structurred format
+    # Return analytics for all URLs in structured format
     cursor = db.cursor()
 
     cursor.execute("""
@@ -61,12 +73,13 @@ def get_all_urls_with_analytics(db):
 
     result = []
     for url in urls:
+        analytics = get_clicks_last_7_days(db, url["alias"])
         result.append(
             {
                 "alias": url["alias"],
                 "original_url": url["original_url"],
-                "total_clicks": get_total_clicks(db, url["alias"]),
-                # "clicks_last_7_days": get_clicks_last_7_days(db, url["alias"]),
+                "total_clicks": analytics["total_clicks"],
+                "daily_clicks": analytics["daily_clicks"],
             }
         )
     return result

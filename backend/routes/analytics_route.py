@@ -27,8 +27,8 @@ def analytics_for_alias(alias):
     try:
         db = get_db()
         urls_analytics = get_clicks_last_7_days(db, alias)
-        current_app.logger.info(f"Returning analyics for alias: {alias}")
-        return jsonify({alias: urls_analytics}), 200
+        current_app.logger.info(f"Returning analytics for alias: {alias}")
+        return jsonify(urls_analytics), 200
     except Exception as error:
         current_app.logger.exception(
             f"Failed to fetch analysis for alias:{alias} => {error}"

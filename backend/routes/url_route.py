@@ -7,7 +7,7 @@ url_bp = Blueprint("url", __name__)
 
 
 @url_bp.route("/shorten", methods=["POST"])
-@rate_limit(limit=2, window=60)
+@rate_limit(limit=1, window=60)
 def shorten_url_route():
     try:
         data = request.get_json()
