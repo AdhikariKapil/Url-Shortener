@@ -8,7 +8,7 @@ url_bp = Blueprint("url", __name__)
 
 
 @url_bp.route("/shorten", methods=["POST"])
-@rate_limit(limit=1, window=60)
+@rate_limit(limit=5, window=60)
 def shorten_url_route():
     try:
         data = request.get_json()
@@ -78,4 +78,3 @@ def get_alias_url(alias: str):
             f"ALIAS LOOKUP FAILED ip={request.remote_addr} alias={alias} reason={e}"
         )
         return jsonify({"error": str(e)}), 500
-

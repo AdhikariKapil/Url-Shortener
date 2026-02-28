@@ -65,24 +65,24 @@ This application allows users to shorten long URLs and track click analytics in 
 
 That's it! The app will be fully running.
 
-## What Each Docker File Does
-
-### `Dockerfile` (Combined Image)
-
-This is a **multi-stage build** that creates one single container with everything:
-
-```
-Stage 1: Build Frontend
-├── Installs Node.js
-├── Runs `npm install` and `npm run build`
-└── Creates optimized React production build
-
-Stage 2: Build Backend & Final Image
-├── Uses Python 3.11 slim image (small size)
-├── Installs Python dependencies from requirements.txt
-├── Copies the built React frontend into Flask's static folder
-└── Runs Flask on port 5000 to serve both API and frontend
-```
+<!-- ## What Each Docker File Does -->
+<!---->
+<!-- ### `Dockerfile` (Combined Image) -->
+<!---->
+<!-- This is a **multi-stage build** that creates one single container with everything: -->
+<!---->
+<!-- ``` -->
+<!-- Stage 1: Build Frontend -->
+<!-- ├── Installs Node.js -->
+<!-- ├── Runs `npm install` and `npm run build` -->
+<!-- └── Creates optimized React production build -->
+<!---->
+<!-- Stage 2: Build Backend & Final Image -->
+<!-- ├── Uses Python 3.11 slim image (small size) -->
+<!-- ├── Installs Python dependencies from requirements.txt -->
+<!-- ├── Copies the built React frontend into Flask's static folder -->
+<!-- └── Runs Flask on port 5000 to serve both API and frontend -->
+<!-- ``` -->
 
 <!-- **Why this approach?** -->
 <!---->
@@ -328,35 +328,36 @@ url_shortener/
 └── README.md           # This file
 ```
 
-## Key Design Decisions
-
-### Why Multi-Stage Docker Build?
-
-- The frontend is built during Docker build (React → HTML/CSS/JS)
-- Only needs Node.js for building, not at runtime
-- Final image only contains Python + built static files
-- Keeps image small (~200MB instead of ~500MB)
-
-### Why Flask Serves Frontend?
-
-- Single container = single deployment unit
-- No need to configure nginx or separate servers
-- Flask's `static` folder serves React build automatically
-- Simpler for testing on recruiter's PC
-
-### Why Redis on Docker?
-
-- No system dependencies needed
-- Isolated environment
-- Easy to reset/clean up
-- Same setup works everywhere (Windows/Mac/Linux)
-
-### Rate Limiter Design
-
-- Redis provides distributed rate-limiting (works across instances)
-- LUA script ensures atomic operations (no race conditions)
-- Per-IP limiting prevents single user from blocking service
-- 5 URLs/minute is per IP, not global
+<!-- ## Key Design Decisions -->
+<!---->
+<!-- ### Why Multi-Stage Docker Build? -->
+<!---->
+<!-- - The frontend is built during Docker build (React → HTML/CSS/JS) -->
+<!-- - Only needs Node.js for building, not at runtime -->
+<!-- - Final image only contains Python + built static files -->
+<!-- - Keeps image small (~200MB instead of ~500MB) -->
+<!---->
+<!-- ### Why Flask Serves Frontend? -->
+<!---->
+<!-- - Single container = single deployment unit -->
+<!-- - No need to configure nginx or separate servers -->
+<!-- - Flask's `static` folder serves React build automatically -->
+<!-- - Simpler for testing on recruiter's PC -->
+<!---->
+<!-- ### Why Redis on Docker? -->
+<!---->
+<!-- - No system dependencies needed -->
+<!-- - Isolated environment -->
+<!-- - Easy to reset/clean up -->
+<!-- - Same setup works everywhere (Windows/Mac/Linux) -->
+<!---->
+<!-- ### Rate Limiter Design -->
+<!---->
+<!-- - Redis provides distributed rate-limiting (works across instances) -->
+<!-- - LUA script ensures atomic operations (no race conditions) -->
+<!-- - Per-IP limiting prevents single user from blocking service -->
+<!-- - 5 URLs/minute is per IP, not global -->
+<!---->
 
 ## Troubleshooting
 
@@ -461,12 +462,10 @@ docker ps
 
 ## Future Improvements
 
-1. **Database**: Switch to PostgreSQL for production
-2. **Frontend**: Add user authentication
-3. **Analytics**: Store detailed hit information (referrer, user agent)
-4. **Monitoring**: Add prometheus metrics
-5. **Caching**: Implement Redis caching for analytics queries
-6. **QR Codes**: Generate QR codes for shortened URLs
+1. **Database**: Switch to PostgreSQL for production to avoid sqlite's weak concurent handleing
+2. **Caching**: Implement Redis caching for analytics queries
+3. **QR Codes**: Generate QR codes for shortened URLs
+4. **Algorithm**: Can use token bucket algorithm for allowing burst handling.
 
 ## Notes for Recruiter
 
