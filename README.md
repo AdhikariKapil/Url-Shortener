@@ -5,6 +5,7 @@ A full-stack web application that shortens URLs and provides analytics with a cu
 ## Project Overview
 
 This application allows users to shorten long URLs and track click analytics in real-time. The core components include:
+
 - **REST API** for URL shortening and redirection with click tracking
 - **React Dashboard** for URL management and analytics visualization
 - **Custom Rate Limiter** preventing abuse (5 URLs per minute per IP)
@@ -15,18 +16,21 @@ Specifically, the rate limiter implementation avoids the overhead of asynchronou
 ## Tech Stack
 
 ### Backend
+
 - Python 3.11 with Flask 3.1.3
 - Redis 7 for rate-limiting and caching
 - SQLite for URL and analytics storage
 - CORS enabled for frontend communication
 
 ### Frontend
+
 - React 19 with Vite build tool
 - Chart.js for analytics visualization
 - Tailwind CSS for styling
 - Axios for API communication
 
 ### Infrastructure
+
 - Docker containerization
 - Docker Compose orchestration
 - Redis Alpine image (lightweight)
@@ -34,17 +38,20 @@ Specifically, the rate limiter implementation avoids the overhead of asynchronou
 ## Quick Start
 
 ### Prerequisites
+
 - Docker Desktop (or Docker + Docker Compose)
 - Git
 
 ### Running on Recruiter's PC
 
 1. **Clone/Extract the project**
+
    ```bash
    cd url_shortener
    ```
 
 2. **Start the application**
+
    ```bash
    docker-compose up --build
    ```
@@ -59,6 +66,7 @@ That's it! The app will be fully running.
 ## What Each Docker File Does
 
 ### `Dockerfile` (Combined Image)
+
 This is a **multi-stage build** that creates one single container with everything:
 
 ```
@@ -75,12 +83,14 @@ Stage 2: Build Backend & Final Image
 ```
 
 **Why this approach?**
+
 - Single container is easier to deploy to recruiter's PC
 - Frontend and backend run together
 - Minimal complexity
 - Flask serves both the API and the built React app
 
 ### `docker-compose.yml` (Orchestration)
+
 Manages two services:
 
 1. **Redis Service**
@@ -96,12 +106,14 @@ Manages two services:
    - Redis talks to backend via service name `redis:6379`
 
 **Why Redis in Docker?**
+
 - Ensures recruiter doesn't need to install Redis separately
 - Everything is self-contained
 - Easy to reset (just `docker-compose down -v`)
 
 ### `.dockerignore`
-Prevents Docker from copying unnecessary files (like node_modules, git, __pycache__) into the image, reducing image size.
+
+Prevents Docker from copying unnecessary files (like node_modules, git, **pycache**) into the image, reducing image size.
 
 ## How the Rate Limiter Works
 
@@ -110,7 +122,7 @@ Prevents Docker from copying unnecessary files (like node_modules, git, __pycach
 The rate limiter uses a **Sliding Window Counter** algorithm:
 
 ```
-Request comes in → Check Redis key for IP address → 
+Request comes in → Check Redis key for IP address →
 If count < 5:
   ✅ Increment counter and allow request
   Set expiry to 60 seconds
@@ -124,6 +136,7 @@ Else:
 **Location**: `backend/middleware/rate_limiter.py`
 
 **How it works:**
+
 1. Client IP is extracted from the request
 2. Redis key format: `rate_limit:{ip}:{current_minute}`
 3. Uses Redis `INCR` command (atomic - no race conditions)
@@ -131,6 +144,7 @@ Else:
 5. Key expires after 60 seconds
 
 **Example Response When Limited:**
+
 ```json
 {
   "message": "Rate limit exceeded",
@@ -143,6 +157,7 @@ The frontend shows a countdown timer using this `retry_after` value.
 ## API Endpoints
 
 ### 1. Shorten URL
+
 ```
 POST /api/shorten
 Content-Type: application/json
@@ -171,6 +186,7 @@ Response (400 Bad Request):
 ```
 
 ### 2. Redirect to Original URL
+
 ```
 GET /{alias}
 
@@ -187,6 +203,7 @@ Response (404 Not Found):
 ```
 
 ### 3. Get All Shortened URLs
+
 ```
 GET /api/analytics
 
@@ -205,6 +222,7 @@ Response (200 OK):
 ```
 
 ### 4. Get Analytics for Specific URL
+
 ```
 GET /api/analytics/{alias}
 
@@ -234,6 +252,7 @@ Response (404 Not Found):
 ```
 
 ### 5. Health Check
+
 ```
 GET /health
 
@@ -247,12 +266,14 @@ Response (200 OK):
 ## Frontend Features
 
 ### URL Shortener Component
+
 - Input field to paste long URLs
 - Copy-to-clipboard button
 - Rate limit countdown timer (if 429 received)
 - Success/error messages
 
 ### Analytics Dashboard
+
 - List of all shortened URLs
 - Click on any URL to see detailed analytics
 - Line chart showing clicks over last 7 days
@@ -306,24 +327,28 @@ url_shortener/
 ## Key Design Decisions
 
 ### Why Multi-Stage Docker Build?
+
 - The frontend is built during Docker build (React → HTML/CSS/JS)
 - Only needs Node.js for building, not at runtime
 - Final image only contains Python + built static files
 - Keeps image small (~200MB instead of ~500MB)
 
 ### Why Flask Serves Frontend?
+
 - Single container = single deployment unit
 - No need to configure nginx or separate servers
 - Flask's `static` folder serves React build automatically
 - Simpler for testing on recruiter's PC
 
 ### Why Redis on Docker?
+
 - No system dependencies needed
 - Isolated environment
 - Easy to reset/clean up
 - Same setup works everywhere (Windows/Mac/Linux)
 
 ### Rate Limiter Design
+
 - Redis provides distributed rate-limiting (works across instances)
 - LUA script ensures atomic operations (no race conditions)
 - Per-IP limiting prevents single user from blocking service
@@ -332,31 +357,39 @@ url_shortener/
 ## Troubleshooting
 
 ### App won't start
+
 ```bash
 docker-compose logs app
 ```
+
 Check for Python or dependency errors.
 
 ### Port 5000 already in use
+
 ```bash
 # Either kill the process or change the port in docker-compose.yml
 # docker-compose.yml line: "5000:5000" → "8000:5000"
 ```
 
 ### Redis connection error
+
 ```bash
 docker-compose logs redis
 ```
+
 The Redis service might be taking time to start. It has a health check; the app waits for it.
 
 ### Frontend shows "Cannot POST /api/shorten"
+
 Check that the React app was built correctly. Run:
+
 ```bash
 docker-compose down
 docker-compose up --build  # Force rebuild
 ```
 
 ### Reset everything (clean slate)
+
 ```bash
 docker-compose down -v
 docker-compose up --build
@@ -383,6 +416,7 @@ curl http://localhost:5000/health
 ```
 
 ### Test rate limiter (run 6 times quickly)
+
 ```bash
 for i in {1..6}; do
   curl -X POST http://localhost:5000/api/shorten \
@@ -391,6 +425,7 @@ for i in {1..6}; do
   echo "\n"
 done
 ```
+
 The 6th request should get a 429 error.
 
 ## Useful Docker Commands
@@ -439,5 +474,3 @@ docker ps
 - CORS properly configured for cross-origin requests
 
 ---
-
-**Questions?** Check the individual files in `backend/` and `frontend/` directories for detailed implementation.
