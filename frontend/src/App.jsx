@@ -1,9 +1,9 @@
-import UrlShortner from "./components/UrlShortner";
+import Dashboard from "./components/Dashboard";
 
 function App() {
   return (
     <>
-      <UrlShortner />
+      <Dashboard />
     </>
   );
 }

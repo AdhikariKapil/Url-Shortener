@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { shortenUrl } from "../services/api";
 
 const UrlShortner = () => {
@@ -9,6 +9,23 @@ const UrlShortner = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (retryAfter <= 0) return;
+
+    const interval = setInterval(() => {
+      setRetryAfter((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [retryAfter]);
+
+  //Clear error after retry timer finishes
+  useEffect(() => {
+    if (retryAfter === 0) {
+      setError("");
+    }
+  }, [retryAfter]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,21 +41,21 @@ const UrlShortner = () => {
     try {
       setLoading(true);
       const response = await shortenUrl(url);
-      console.log(response.data);
       setAlias(response.data.alias);
       setSuccess(true);
       setUrl("");
     } catch (error) {
-      if (error.response && error.response.status === 429) {
-        setRetryAfter(error.response.data.retry_after || 20);
+      if (error.status === 429) {
+        // Try multiple ways to get retry_after
+        const retryTime = error.response?.data?.retry_after || 20;
+        setRetryAfter(retryTime);
         setError(
-          `Too many requests. Please try again in ${error.response.data.retry_after} seconds.`,
+          `Too many requests. Please try again in ${retryTime} seconds.`,
         );
-      } else if (error.response?.data?.error) {
-        setError(error.response.data.error);
+      } else if (error.data?.error) {
+        setError(error.data.error);
       } else {
         setError("Unable to shorten URL. Please check the URL and try again.");
-        console.error(error);
       }
     } finally {
       setLoading(false);
@@ -50,9 +67,7 @@ const UrlShortner = () => {
       await navigator.clipboard.writeText(shortUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy:", err);
-    }
+    } catch (err) {}
   };
 
   const handleReset = () => {
@@ -61,6 +76,7 @@ const UrlShortner = () => {
     setError("");
     setSuccess(false);
     setCopied(false);
+    setRetryAfter(0);
   };
 
   return (
@@ -90,7 +106,7 @@ const UrlShortner = () => {
                 placeholder="https://example.com/very/long/url"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                disabled={loading || retryAfter > 0}
+                disabled={loading}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent transition-all disabled:bg-gray-50 disabled:text-gray-500"
               />
             </div>
@@ -115,12 +131,14 @@ const UrlShortner = () => {
             </div>
           </form>
 
+          {/* Error Message */}
           {error && (
             <div className="mt-5 p-3 bg-red-50 border border-red-200 rounded-md">
               <p className="text-sm text-red-800 font-medium">⚠ {error}</p>
             </div>
           )}
 
+          {/* Success Message */}
           {success && (
             <div className="mt-5 p-3 bg-green-50 border border-green-200 rounded-md">
               <p className="text-sm text-green-800 font-medium">
@@ -129,6 +147,7 @@ const UrlShortner = () => {
             </div>
           )}
 
+          {/* Result Section */}
           {alias && (
             <div className="mt-5 p-4 bg-gray-50 border border-gray-200 rounded-md">
               <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
@@ -160,12 +179,22 @@ const UrlShortner = () => {
             </div>
           )}
 
+          {/* Rate Limit Countdown */}
           {retryAfter > 0 && (
-            <div className="mt-5 p-3 bg-amber-50 border border-amber-200 rounded-md">
-              <p className="text-sm text-amber-800">
-                <span className="font-medium">Rate limited</span> • Try again in{" "}
-                {retryAfter}s
+            <div className="mt-5 p-6 bg-amber-50 border-2 border-amber-300 rounded-md">
+              <p className="text-sm text-amber-800 mb-6 text-center">
+                <span className="font-semibold">Rate limit active</span>
               </p>
+              <div className="flex items-center justify-center">
+                <div className="text-center">
+                  <div className="text-7xl font-bold text-amber-900 mb-3 font-mono">
+                    {retryAfter}
+                  </div>
+                  <div className="text-base text-amber-800 font-medium">
+                    seconds remaining
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
