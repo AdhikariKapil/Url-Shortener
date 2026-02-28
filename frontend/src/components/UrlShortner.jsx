@@ -61,14 +61,6 @@ const UrlShortner = () => {
       setLoading(false);
     }
   };
-  const handleCopy = async () => {
-    const shortUrl = `${import.meta.env.VITE_API_BASE}/alias/${alias}`;
-    try {
-      await navigator.clipboard.writeText(shortUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {}
-  };
 
   const handleReset = () => {
     setUrl("");
@@ -160,13 +152,6 @@ const UrlShortner = () => {
                   value={`${alias}`}
                   className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 text-sm focus:outline-none"
                 />
-                <button
-                  type="button"
-                  onClick={handleCopy}
-                  className="px-3 py-2 bg-gray-900 text-white text-sm font-medium rounded-md hover:bg-gray-800 transition-colors"
-                >
-                  {copied ? "Copied" : "Copy"}
-                </button>
               </div>
               <a
                 href={`${import.meta.env.VITE_API_BASE}/alias/${alias}`}

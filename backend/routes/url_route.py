@@ -1,7 +1,8 @@
-from flask import Blueprint, jsonify, request, current_app, redirect, abort
+from flask import Blueprint, jsonify, request, current_app, abort
 from models.database import get_db
-from services.url_service import shorten_url, handle_redirect
+from services.url_service import shorten_url
 from middleware.rate_limiter import rate_limit
+from services.url_service import handle_redirect
 
 url_bp = Blueprint("url", __name__)
 
@@ -55,30 +56,26 @@ def shorten_url_route():
 
 
 @url_bp.route("/alias/<alias>", methods=["GET"])
-def redirect_url(alias: str):
+def get_alias_url(alias: str):
     try:
         db = get_db()
-
-        if alias == "favicon.ico":
-            abort(404)
 
         original_url = handle_redirect(db, alias)
 
         if not original_url:
             current_app.logger.warning(
-                f"REDIRECT FAILED ip={request.remote_addr} alias={alias} reason = 'URL Not Found'"
+                f"ALIAS LOOKUP FAILED ip={request.remote_addr} alias={alias} reason='URL Not Found'"
             )
-            abort(404, description="Alias not found.")
+            return jsonify({"error": "Alias not found"}), 404
 
         current_app.logger.info(
-            f"REDIRECT SUCCESS ip={request.remote_addr} alias={alias} url = {original_url}"
+            f"ALIAS LOOKUP SUCCESS ip={request.remote_addr} alias={alias} url={original_url}"
         )
-        return redirect(original_url, code=302)  # found
+        return jsonify({"original_url": original_url}), 200
 
     except Exception as e:
-        if alias == "favicon.ico":
-            abort(400)
         current_app.logger.exception(
-            f"REDIRECT FAILED ip = {request.remote_addr} alias = {alias} reason = {e}"
+            f"ALIAS LOOKUP FAILED ip={request.remote_addr} alias={alias} reason={e}"
         )
-        abort(500, description="Internal Server Error")
+        return jsonify({"error": str(e)}), 500
+

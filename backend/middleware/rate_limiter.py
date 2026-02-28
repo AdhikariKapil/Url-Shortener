@@ -1,6 +1,6 @@
 import time
+import os
 from redis.exceptions import NoScriptError
-from pathlib import Path
 from functools import wraps
 from flask import request, jsonify, current_app
 
@@ -13,9 +13,10 @@ def load_lua():
     global lua_script
     redis = get_redis()
 
-    path = Path(
-        "~/dev/url_shortener/backend/services/sliding_window_atomicity.lua"
-    ).expanduser()
+    path = os.path.join(
+        os.path.dirname(__file__), "../services/sliding_window_atomicity.lua"
+    )
+    path = os.path.abspath(path)
     with open(path) as f:
         script = f.read()
 

@@ -4,6 +4,7 @@ from .analytics_route import analytics_bp
 
 
 def register_routes(app):
-    app.register_blueprint(analytics_bp)
-    app.register_blueprint(health_bp)
-    app.register_blueprint(url_bp)
+    # API routes with /api prefix
+    app.register_blueprint(url_bp, url_prefix="/api")
+    app.register_blueprint(analytics_bp, url_prefix="/api")
+    app.register_blueprint(health_bp, url_prefix="/api")

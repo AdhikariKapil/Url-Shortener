@@ -1,14 +1,39 @@
+# Frontend
+frontend/node_modules
+frontend/dist
+frontend/.env.local
+frontend/.vscode
+frontend/.idea
+
+# Backend
+backend/__pycache__
+backend/.pytest_cache
+backend/.env
+backend/.envrc
+backend/instances
+backend/url-short
+backend/.vscode
+backend/.idea
+
+# General
 .git
 .gitignore
-__pycache__
+.DS_Store
+*.log
 *.pyc
 *.pyo
-*.egg-info
-.pytest_cache
-.env
-node_modules
-dist
-.DS_Store
+__pycache__
 .vscode
 .idea
-*.log
+node_modules
+.env.local
+*.swp
+*.swo
+*~
+.DS_Store
+*.bak
+
+# Documentation
+README.md
+.github
+.gitattributes

@@ -1,6 +1,7 @@
 # This is the redis connection
 
 import redis
+import time
 
 redis_client = None
 
@@ -17,12 +18,16 @@ def init_redis(app):
         socket_timeout=2,
     )
 
-    try:
-        redis_client.ping()
-        app.logger.warning("REDIS CONNECTED SUCCESSFULLY.")
-    except Exception as error:
-        app.logger.error(f"REDIS CONNECTION FAILED, reason = '{str(error)}'")
-        raise error
+    for attempt in range(5):
+        try:
+            redis_client.ping()
+            app.logger.warning("REDIS CONNECTED SUCCESSFULLY.")
+            break
+        except Exception as error:
+            app.logger.error(
+                f"REDIS CONNECTION FAILED, reason = '{str(error)}' redis retry {attempt+1}"
+            )
+            time.sleep(2)
 
 
 def get_redis():

@@ -12,7 +12,7 @@ class Config:
         "fallback-dev-key",
     )
 
-    REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+    REDIS_HOST = os.getenv("REDIS_HOST", "redis")
     REDIS_PORT = os.getenv("REDIS_PORT", 6379)
 
     INSTANCES_FOLDER = os.path.join(BASE_DIR, "instances")

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { getUrlAnalytics } from "../services/api.js";
 
 const AnalyticsChart = ({ alias, onAliasChange, urls }) => {
   const [chartData, setChartData] = useState(null);
@@ -9,14 +10,9 @@ const AnalyticsChart = ({ alias, onAliasChange, urls }) => {
     if (!alias) return;
     try {
       setLoading(true);
-      const response = await fetch(`/api/analytics/${alias}`);
-      if (response.ok) {
-        const data = await response.json();
-        setChartData(data);
-        setError("");
-      } else {
-        setError("Failed to load analytics");
-      }
+      const response = await getUrlAnalytics(alias);
+      setChartData(response.data);
+      setError("");
     } catch (err) {
       setError("Unable to fetch analytics data");
       console.error(err);

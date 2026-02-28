@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { getHealth, getAllUrl } from "../services/api.js";
 import UrlShortner from "./UrlShortner";
 import StatsCards from "./StatsCards";
 import UrlTable from "./UrlTable";
@@ -16,12 +17,8 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchHealth = async () => {
       try {
-        const response = await fetch("/api/health");
-        if (response.ok) {
-          setHealth({ status: "healthy" });
-        } else {
-          setHealth({ status: "unhealthy" });
-        }
+        await getHealth();
+        setHealth({ status: "healthy" });
       } catch (err) {
         setHealth({ status: "down" });
       }
@@ -36,17 +33,13 @@ const Dashboard = () => {
   const fetchUrls = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/analytics");
-      if (response.ok) {
-        const data = await response.json();
-        setUrls(data.urls || []);
-        if (data.urls && data.urls.length > 0 && !selectedAlias) {
-          setSelectedAlias(data.urls[0].alias);
-        }
-        setError("");
-      } else {
-        setError("Failed to load URLs");
+      const response = await getAllUrl();
+      const data = response.data;
+      setUrls(data.urls || []);
+      if (data.urls && data.urls.length > 0 && !selectedAlias) {
+        setSelectedAlias(data.urls[0].alias);
       }
+      setError("");
     } catch (err) {
       setError("Unable to fetch analytics data");
       console.error(err);
@@ -70,8 +63,12 @@ const Dashboard = () => {
         {/* Header with Health Status */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900">URL Shortener Dashboard</h1>
-            <p className="text-gray-600 mt-2">Manage and analyze your shortened URLs</p>
+            <h1 className="text-4xl font-bold text-gray-900">
+              URL Shortener Dashboard
+            </h1>
+            <p className="text-gray-600 mt-2">
+              Manage and analyze your shortened URLs
+            </p>
           </div>
           <HealthStatus status={health} />
         </div>
@@ -81,7 +78,9 @@ const Dashboard = () => {
 
         {/* Create URL Section */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Create New Short URL</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">
+            Create New Short URL
+          </h2>
           <UrlShortner onUrlCreated={handleUrlCreated} />
         </div>
 
@@ -89,8 +88,8 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* URL Table */}
           <div className="lg:col-span-1">
-            <UrlTable 
-              urls={urls} 
+            <UrlTable
+              urls={urls}
               selectedAlias={selectedAlias}
               onSelectAlias={setSelectedAlias}
               loading={loading}
@@ -101,7 +100,7 @@ const Dashboard = () => {
 
           {/* Analytics Chart */}
           <div className="lg:col-span-2">
-            <AnalyticsChart 
+            <AnalyticsChart
               alias={selectedAlias}
               onAliasChange={setSelectedAlias}
               urls={urls}

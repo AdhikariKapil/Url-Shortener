@@ -1,24 +1,34 @@
 import { useState } from "react";
+import { getAliasUrl } from "../services/api.js";
 
-const UrlTable = ({ urls, selectedAlias, onSelectAlias, loading, error, onRefresh }) => {
+const SHORT_URL_BASE = import.meta.env.VITE_API_BASE || "/";
+
+const UrlTable = ({
+  urls,
+  selectedAlias,
+  onSelectAlias,
+  loading,
+  error,
+  onRefresh,
+}) => {
   const [copied, setCopied] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const handleCopy = async (alias) => {
-    const shortUrl = `${import.meta.env.VITE_API_BASE}/alias/${alias}`;
+  const handleOpenAlias = async (alias) => {
     try {
-      await navigator.clipboard.writeText(shortUrl);
-      setCopied(alias);
-      setTimeout(() => setCopied(null), 2000);
+      const response = await getAliasUrl(alias);
+      const originalUrl = response.data.original_url;
+      window.open(originalUrl, "_blank");
     } catch (err) {
-      console.error("Failed to copy:", err);
+      console.error("Failed to get alias URL:", err);
+      alert("Could not open URL");
     }
   };
 
   const filteredUrls = urls.filter(
     (url) =>
       url.alias.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      url.original_url.toLowerCase().includes(searchTerm.toLowerCase())
+      url.original_url.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
@@ -64,9 +74,15 @@ const UrlTable = ({ urls, selectedAlias, onSelectAlias, loading, error, onRefres
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-2 font-semibold text-gray-700">Alias</th>
-                <th className="text-left py-3 px-2 font-semibold text-gray-700">Clicks</th>
-                <th className="text-left py-3 px-2 font-semibold text-gray-700">Actions</th>
+                <th className="text-left py-3 px-2 font-semibold text-gray-700">
+                  Alias
+                </th>
+                <th className="text-left py-3 px-2 font-semibold text-gray-700">
+                  Clicks
+                </th>
+                <th className="text-left py-3 px-2 font-semibold text-gray-700">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -85,28 +101,21 @@ const UrlTable = ({ urls, selectedAlias, onSelectAlias, loading, error, onRefres
                     </div>
                   </td>
                   <td className="py-3 px-2">
-                    <span className="font-semibold text-gray-900">{url.total_clicks || 0}</span>
+                    <span className="font-semibold text-gray-900">
+                      {url.total_clicks || 0}
+                    </span>
                   </td>
                   <td className="py-3 px-2">
                     <div className="flex gap-2">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleCopy(url.alias);
+                          handleOpenAlias(url.alias);
                         }}
-                        className="px-2 py-1 bg-gray-900 text-white text-xs rounded hover:bg-gray-800 transition-colors"
-                      >
-                        {copied === url.alias ? "✓ Copied" : "Copy"}
-                      </button>
-                      <a
-                        href={`${import.meta.env.VITE_API_BASE}/alias/${url.alias}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
                         className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded hover:bg-gray-200 transition-colors"
                       >
                         Open
-                      </a>
+                      </button>
                     </div>
                   </td>
                 </tr>

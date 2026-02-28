@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   redis:
@@ -14,9 +14,9 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - app-network
+      - url_shortener_network
 
-  app:
+  flask-app:
     build:
       context: .
       dockerfile: Dockerfile
@@ -24,22 +24,22 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - FLASK_ENV=development
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - SECRET_KEY=dev-secret-key
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      FLASK_ENV: production
     depends_on:
       redis:
         condition: service_healthy
     volumes:
-      - ./backend/instances:/app/instances
+      - ./backend/instances:/app/backend/instances
     networks:
-      - app-network
+      - url_shortener_network
     restart: unless-stopped
 
 volumes:
   redis_data:
+    driver: local
 
 networks:
-  app-network:
+  url_shortener_network:
     driver: bridge
