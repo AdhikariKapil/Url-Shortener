@@ -66,7 +66,7 @@ def get_all_urls_with_analytics(db):
                 "alias": url["alias"],
                 "original_url": url["original_url"],
                 "total_clicks": get_total_clicks(db, url["alias"]),
-                "clicks_last_7_days": get_clicks_last_7_days(db, url["alias"]),
+                # "clicks_last_7_days": get_clicks_last_7_days(db, url["alias"]),
             }
         )
     return result
