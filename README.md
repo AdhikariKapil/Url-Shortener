@@ -466,14 +466,3 @@ docker ps
 2. **Caching**: Implement Redis caching for analytics queries
 3. **QR Codes**: Generate QR codes for shortened URLs
 4. **Algorithm**: Can use token bucket algorithm for allowing burst handling.
-
-## Notes for Recruiter
-
-- All code follows Python naming conventions (snake_case for functions/variables, PascalCase for classes)
-- React uses functional components with hooks (modern es6+)
-- Clean separation of concerns: routes → services → models
-- Error handling for edge cases (invalid URLs, network timeouts, etc.)
-- Database schema is normalized to prevent redundant data
-- CORS properly configured for cross-origin requests
-
----
